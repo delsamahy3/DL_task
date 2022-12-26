@@ -25,6 +25,8 @@ The value of each pixel in the image data is an integer in the range [0,255]. We
 
 ## Proposed Solutions
 
+Proposed Solutions was to train a light weight CNN "MobileNet" on the FashionMNIST dataset, or use a pretrained version and finetune on the fashion dataset, however for the sake of the project I chose to build a custom CNN and visualise the accuracies and confusion matrix for it.
+
 ## Solution of choice
 
 Creating a model class (FashionCNN)

@@ -69,7 +69,7 @@ Final fully connected layer has 10 output features for 10 types of clothes.
 
 ## Choice of Metrics
 
-For a Loss function, I am using CrossEntropyLoss as it is suitable for multi-label classification. We compute the binary cross-entropy for each class separately and then sum them up for the complete loss.
+For a Loss function, I am using CrossEntropyLoss as it is suitable for multi-class classification. We compute the binary cross-entropy for each class separately and then sum them up for the complete loss.
 
 Using Adam algorithm for optimization purpose as it has faster computation time, and requires fewer parameters for tuning.
 
@@ -85,7 +85,7 @@ Over the course of 5 epochs, the testing accuracy reaches 90.29000091552734% and
 
 <img width="383" alt="Screen Shot 2022-12-26 at 10 33 36 PM" src="https://user-images.githubusercontent.com/114371118/209581760-7cf9c6dc-0527-4ea1-8633-13cd2e9cdc77.png">
 
-Per-label accuracies are shown
+Per-class accuracies are shown
 
 <img width="311" alt="Screen Shot 2022-12-26 at 10 33 57 PM" src="https://user-images.githubusercontent.com/114371118/209581773-3daaeb87-1a1f-4d68-8b48-55f406f7ea95.png">
 
@@ -100,9 +100,60 @@ Normalized Confusion Matrix
 
 ## Overall Model Receptive Field
 
+The Receptive Field (RF) is defined as the size of the region in the input that produces the feature. Basically, it is a measure of association of an output feature (of any layer) to the input region (patch). This is mainly concerning convolution and pooling operations.
+
+When designing a model, we design it such that its receptive field covers the entire relevant input image region
+
+Using this repo to calculate per layer receptive field: https://github.com/Fangyh09/pytorch-receptive-field. Receptive fields for the model are shown in the table below:
+
+<img width="466" alt="Screen Shot 2022-12-26 at 11 08 15 PM" src="https://user-images.githubusercontent.com/114371118/209583451-157348c2-5e39-4c11-81f8-ab8cdfffe692.png">
+
+In order to increase the model receptive field, we can do the following:
+
+*    Add more convolutional layers (make the network deeper), this will also cause number of parameters to increase greatly. 
+
+*    Add pooling layers or higher stride convolutions (sub-sampling)
+
+*    Use dilated convolutions, which can act as a quick method to increase the receptive field.
+
+*    Depth-wise convolutions
+
 ## FLOPs and MACs
 
+To measure inference time for a model, we can calculate the total number of computations the model will have to perform.
+This is where we mention the term FLOP, or Floating Point Operation.
+This could be an addition, subtraction, division, multiplication, or any other operation that involves a floating point value.
+The FLOPs will give us the complexity of our model.
+
+FLOPS are the Floating Point Operations per Second. This is a rate that tells us how good is our hardware.
+The more operations per second we can do, the faster the inference will be.
+
+MACs, standing for Multiply-Accumulate Computations.
+A MAC is an operation that does an addition and a multiplication, so 2 operations.
+In a neural network, addition and multiplications happen every time. We consider 1 MAC = 2 FLOPs.
+
+Generally, one would want a low number of FLOPs in the model, but keeping it complex enough to be good, while having a high number of FLOPS in our hardware.
+
+We use the https://pypi.org/project/flopth/ python package to calculate the FLOPs per layer, which according to the rule mentioned above also represents the MACs for the layers.
+
+We can see in the table below that the second Conv layer and the first fully-connected layer consume the greatest numbers of FLOPs.
+
+<img width="1155" alt="Screen Shot 2022-12-26 at 11 05 19 PM" src="https://user-images.githubusercontent.com/114371118/209583329-6b65af07-0ada-4e38-b0ad-110fabdf756d.png">
+
+We can decrease the number of FLOPs/MACs using the following techniques:
+
+*   Reducing the Number of Operations through pooling, seperable convolutions and model pruning.
+*   Reducing the model size through quantization, knowledge distillation and weight sharing (Weight Sharing is a compression technique in which we share the weights between neurons, so we have less of them to store.)
+
 ## Computationally Expensive Layers
+
+<img width="512" alt="Screen Shot 2022-12-26 at 11 25 39 PM" src="https://user-images.githubusercontent.com/114371118/209584085-f133f4c6-4248-4747-9ee8-5fb2e68ae88c.png">
+
+In general in any CNN the maximum time of training goes in the Back-Propagation of errors in the Fully Connected Layer (depends on the image size). Also the maximum memory is also occupied by them. We can see that fc1 occupies 98% of the parameters.
+
+As far as training time goes, it somewhat depends on the size (pixels* pixels) of the image being used. In FC layers it is straightforward that the number of derivatives you have to calculate is equal to the number of parameters.
+
+The number of calculations in a convolutional layer really depends on the number of filters and the size of the picture.
 
 ## Optimization
 
